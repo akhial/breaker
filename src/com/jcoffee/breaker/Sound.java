@@ -6,6 +6,12 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * The class <code>Sound</code> represents a playable sound file
+ *
+ * @author Adel Khial
+ */
+
 public class Sound {
 
     private Clip clip;
