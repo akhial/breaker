@@ -3,7 +3,6 @@ package com.jcoffee.breaker;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -25,6 +24,8 @@ public class Board extends JPanel implements Runnable {
     private boolean leftPressed = false;
     private boolean firePressed = false;
     private Turret turret;
+    private Sound shotSound;
+    private Sound music;
 
     private ArrayList<Entity> bullets = new ArrayList<>();
     private ArrayList<Entity> bricks = new ArrayList<>();
@@ -40,6 +41,13 @@ public class Board extends JPanel implements Runnable {
 
         setPreferredSize(new Dimension(487, 640));
         initEntities();
+
+        shotSound = new Sound("resources/bullet_shot.wav");
+        shotSound.setShot(true);
+
+        music = new Sound("resources/music.wav");
+        music.setLoop(true);
+        music.play();
 
     }
 
@@ -76,10 +84,10 @@ public class Board extends JPanel implements Runnable {
     }
 
     private void initEntities() {
-        turret = new Turret("resources/Turret.png", 487 / 2 - 34, 640 - 160);
+        turret = new Turret("resources/turret.png", 487 / 2 - 34, 640 - 160);
         for(int i = 0; i < 4; i++) {
             for(int j = 0; j < brickCount / 4; j++) {
-                Brick brick = new Brick("resources/Brick.png", j * 50, i * 50, this);
+                Brick brick = new Brick("resources/brick.png", j * 50, i * 50, this);
                 bricks.add(brick);
             }
         }
@@ -91,7 +99,8 @@ public class Board extends JPanel implements Runnable {
         if(curTime - lastFireTime > fireSpeed) {
             lastFireTime = curTime;
             // 229, 430
-            Bullet bullet = new Bullet("resources/Bullet.png",
+            shotSound.play();
+            Bullet bullet = new Bullet("resources/bullet.png",
                     turret.getX() + 20 + 110 * Math.sin(Math.toRadians(-turret.getAngle() + 90)),
                     turret.getY() + 60 + 110 * Math.cos(Math.toRadians(-turret.getAngle() + 90)), this);
             bullets.add(bullet);
@@ -106,6 +115,9 @@ public class Board extends JPanel implements Runnable {
         brickCount = -1;
         firePressed = false;
         showMessage = true;
+        music.stop();
+        Sound end = new Sound("resources/end_game.wav");
+        end.play();
     }
 
     private void drawEntities(Graphics g) {
