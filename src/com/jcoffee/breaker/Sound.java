@@ -58,6 +58,11 @@ public class Sound {
         clip.stop();
     }
 
+    public void setVolume(float gain) {
+        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+        gainControl.setValue(gain);
+    }
+
     public void setLoop(boolean loop) {
         this.loop = loop;
     }

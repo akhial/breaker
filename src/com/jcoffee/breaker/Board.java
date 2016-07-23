@@ -1,10 +1,11 @@
 package com.jcoffee.breaker;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
+import java.security.SecureRandom;
+import java.util.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 
 /**
  * The <code>Board</code> class is the container of the game,
@@ -17,7 +18,7 @@ public class Board extends JPanel implements Runnable {
 
     private static final int DELAY = 10000000;
     private long lastFireTime = 0;
-    private int brickCount = 40;
+    private int brickCount = 80;
     private boolean showMessage = false;
     private boolean gameRunning = true;
     private boolean rightPressed = false;
@@ -26,6 +27,8 @@ public class Board extends JPanel implements Runnable {
     private Turret turret;
     private Sound shotSound;
     private Sound music;
+    private String[] colors = {"blue", "purple", "yellow", "magenta", "green"};
+    private SecureRandom random;
 
     private ArrayList<Entity> bullets = new ArrayList<>();
     private ArrayList<Entity> bricks = new ArrayList<>();
@@ -38,12 +41,15 @@ public class Board extends JPanel implements Runnable {
         s = 0.4f;
         b = 0.4f;
         setBackground(Color.getHSBColor(h, s, b));
+        setDoubleBuffered(false);
 
         setPreferredSize(new Dimension(487, 640));
+        random = new SecureRandom();
         initEntities();
 
         shotSound = new Sound("resources/bullet_shot.wav");
         shotSound.setShot(true);
+        shotSound.setVolume(-13.0f);
 
         music = new Sound("resources/music.wav");
         music.setLoop(true);
@@ -85,9 +91,10 @@ public class Board extends JPanel implements Runnable {
 
     private void initEntities() {
         turret = new Turret("resources/turret.png", 487 / 2 - 34, 640 - 160);
-        for(int i = 0; i < 4; i++) {
-            for(int j = 0; j < brickCount / 4; j++) {
-                Brick brick = new Brick("resources/brick.png", j * 50, i * 50, this);
+        for(int i = 0; i < brickCount / 10; i++) {
+            for(int j = 0; j < 10; j++) {
+                int color = random.nextInt(5);
+                Brick brick = new Brick("resources/" + colors[color] + "/" + colors[color] + "_1.png", j * 50, i * 50, this, colors[color]);
                 bricks.add(brick);
             }
         }
@@ -115,9 +122,20 @@ public class Board extends JPanel implements Runnable {
         brickCount = -1;
         firePressed = false;
         showMessage = true;
-        music.stop();
+        // music.stop();
+        music.setVolume(-22.0f);
         Sound end = new Sound("resources/end_game.wav");
+        end.setVolume(6.0f);
         end.play();
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                music.setVolume(0.0f);
+            }
+        };
+        java.util.Timer timer = new java.util.Timer();
+        timer.schedule(task, 8000);
     }
 
     private void drawEntities(Graphics g) {

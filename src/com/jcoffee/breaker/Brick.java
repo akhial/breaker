@@ -9,10 +9,12 @@ package com.jcoffee.breaker;
 public class Brick extends Entity {
 
     private Board board;
+    private String color;
 
-    public Brick(String ref, double x, double y, Board board) {
+    public Brick(String ref, double x, double y, Board board, String color) {
         super(ref, x, y);
         this.board = board;
+        this.color = color;
     }
 
     @Override

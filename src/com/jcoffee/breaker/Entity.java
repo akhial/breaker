@@ -57,7 +57,7 @@ public abstract class Entity {
     }
 
     public boolean isCollided(Entity other) {
-        me.setBounds((int) x, (int) y, getWidth(), getHeight());
+        me.setBounds((int) x, (int) y, getWidth() - 10, getHeight() - 10);
         him.setBounds((int) other.x, (int) other.y, other.getWidth(), other.getHeight());
 
         return me.intersects(him);

@@ -21,12 +21,12 @@ public class Turret extends Entity {
     }
 
     public void leftRotate() {
-        if(angle > 225)
+        if(angle > 205)
             angle -= 1;
     }
 
     public void rightRotate() {
-        if(angle < 315)
+        if(angle < 335)
             angle += 1;
     }
 
