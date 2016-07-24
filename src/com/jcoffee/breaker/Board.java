@@ -5,7 +5,7 @@ import java.security.SecureRandom;
 import java.util.*;
 
 import javax.swing.*;
-import javax.swing.Timer;
+import java.util.Timer;
 
 /**
  * The <code>Board</code> class is the container of the game,
@@ -47,11 +47,11 @@ public class Board extends JPanel implements Runnable {
         random = new SecureRandom();
         initEntities();
 
-        shotSound = new Sound("resources/bullet_shot.wav");
+        shotSound = new Sound("resources/sounds/bullet_shot.wav");
         shotSound.setShot(true);
         shotSound.setVolume(-13.0f);
 
-        music = new Sound("resources/music.wav");
+        music = new Sound("resources/sounds/music.wav");
         music.setLoop(true);
         music.play();
 
@@ -90,11 +90,11 @@ public class Board extends JPanel implements Runnable {
     }
 
     private void initEntities() {
-        turret = new Turret("resources/turret.png", 487 / 2 - 34, 640 - 160);
+        turret = new Turret("resources/sprites/turret/turret_0.png", 487 / 2 - 34, 640 - 160);
         for(int i = 0; i < brickCount / 10; i++) {
             for(int j = 0; j < 10; j++) {
                 int color = random.nextInt(5);
-                Brick brick = new Brick("resources/" + colors[color] + "/" + colors[color] + "_1.png", j * 50, i * 50, this, colors[color]);
+                Brick brick = new Brick("resources/sprites/" + colors[color] + "/" + colors[color] + "_1.png", j * 50, i * 50);
                 bricks.add(brick);
             }
         }
@@ -107,9 +107,9 @@ public class Board extends JPanel implements Runnable {
             lastFireTime = curTime;
             // 229, 430
             shotSound.play();
-            Bullet bullet = new Bullet("resources/bullet.png",
-                    turret.getX() + 20 + 110 * Math.sin(Math.toRadians(-turret.getAngle() + 90)),
-                    turret.getY() + 60 + 110 * Math.cos(Math.toRadians(-turret.getAngle() + 90)), this);
+            Bullet bullet = new Bullet("resources/sprites/bullet.png",
+                    turret.getX() + 20 + 107 * Math.sin(Math.toRadians(-turret.getAngle() + 90)),
+                    turret.getY() + 60 + 107 * Math.cos(Math.toRadians(-turret.getAngle() + 90)), this);
             bullets.add(bullet);
 
         }
@@ -124,7 +124,7 @@ public class Board extends JPanel implements Runnable {
         showMessage = true;
         // music.stop();
         music.setVolume(-22.0f);
-        Sound end = new Sound("resources/end_game.wav");
+        Sound end = new Sound("resources/sounds/end_game.wav");
         end.setVolume(6.0f);
         end.play();
 
@@ -134,7 +134,7 @@ public class Board extends JPanel implements Runnable {
                 music.setVolume(0.0f);
             }
         };
-        java.util.Timer timer = new java.util.Timer();
+        Timer timer = new Timer();
         timer.schedule(task, 8000);
     }
 
@@ -170,6 +170,12 @@ public class Board extends JPanel implements Runnable {
         removeBricks.clear();
         bullets.removeAll(removeBullets);
         removeBullets.clear();
+
+        for(Entity brick : bricks) {
+            ((Brick) brick).update(System.nanoTime());
+        }
+
+        turret.update();
 
         if(leftPressed && !rightPressed) {
             turret.leftRotate();
