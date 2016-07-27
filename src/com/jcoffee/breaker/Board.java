@@ -38,10 +38,10 @@ public class Board extends JPanel implements Runnable {
     public Board() {
         float h, s, b;
         h = 180f / 360;
-        s = 0.4f;
+        s = 0.6f;
         b = 0.4f;
         setBackground(Color.getHSBColor(h, s, b));
-        setDoubleBuffered(false);
+        setDoubleBuffered(true);
 
         setPreferredSize(new Dimension(487, 640));
         random = new SecureRandom();
@@ -75,14 +75,11 @@ public class Board extends JPanel implements Runnable {
 
     public void removeBrick(Entity e) {
         removeBricks.add(e);
+        --brickCount;
     }
 
     public void removeBullet(Entity e) {
         removeBullets.add(e);
-    }
-
-    public void notifyBrick() {
-        --brickCount;
     }
 
     public int getAngle() {
@@ -90,26 +87,27 @@ public class Board extends JPanel implements Runnable {
     }
 
     private void initEntities() {
-        turret = new Turret("resources/sprites/turret/turret_0.png", 487 / 2 - 34, 640 - 160);
-        for(int i = 0; i < brickCount / 10; i++) {
+        turret = new Turret("resources/sprites/turret/turret_0.png", 487 / 2 - 34, 640 - 140);
+        for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 10; j++) {
-                int color = random.nextInt(5);
-                Brick brick = new Brick("resources/sprites/" + colors[color] + "/" + colors[color] + "_1.png", j * 50, i * 50);
+                int color = random.nextInt(colors.length);
+                String colorName = colors[color];
+                Brick brick = new Brick("resources/sprites/" + colorName + "/" + colorName + "_1.png", j * 50, i * 50, colorName);
                 bricks.add(brick);
             }
         }
     }
 
     private void fire() {
-        int fireSpeed = 200000000;
+        int fireSpeed = 100000000;
         long curTime = System.nanoTime();
         if(curTime - lastFireTime > fireSpeed) {
             lastFireTime = curTime;
             // 229, 430
             shotSound.play();
             Bullet bullet = new Bullet("resources/sprites/bullet.png",
-                    turret.getX() + 20 + 107 * Math.sin(Math.toRadians(-turret.getAngle() + 90)),
-                    turret.getY() + 60 + 107 * Math.cos(Math.toRadians(-turret.getAngle() + 90)), this);
+                    turret.getX() + 20 + 125 * Math.sin(Math.toRadians(-turret.getAngle() + 90)),
+                    turret.getY() + 75 + 125 * Math.cos(Math.toRadians(-turret.getAngle() + 90)), this);
             bullets.add(bullet);
 
         }
@@ -138,7 +136,56 @@ public class Board extends JPanel implements Runnable {
         timer.schedule(task, 8000);
     }
 
+    private Brick getBrick(int x, int y) {
+        if(x < 0 || x > 10) {
+            return null;
+        }
+        if(y < 0 || y > 8) {
+            return null;
+        }
+        for(Entity b : bricks) {
+            if(b.getX() == x * 50 && b.getY() == y * 50) {
+                return (Brick) b;
+            }
+        }
+        return null;
+    }
+
+    public boolean checkBricks(Brick brick, String color) {
+        int x, y;
+        if(brick == null) {
+            return false;
+        }
+        if(brick.isVisited() || !brick.getColor().equals(color)) {
+            return false;
+        }
+        brick.setVisited();
+        Brick b;
+
+        x = brick.getX() / 50 + 1;
+        y = brick.getY() / 50;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+        x = brick.getX() / 50 - 1;
+        y = brick.getY() / 50;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+        x = brick.getX() / 50;
+        y = brick.getY() / 50 + 1;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+        x = brick.getX() / 50;
+        y = brick.getY() / 50 - 1;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+
+        removeBrick(brick);
+
+        return false;
+    }
+
     private void drawEntities(Graphics g) {
+
         try {
             turret.draw(g);
             for(Entity e : bullets)
@@ -146,13 +193,16 @@ public class Board extends JPanel implements Runnable {
             for(Entity e : bricks)
                 e.draw(g);
         } catch(ConcurrentModificationException cme) {
+            System.out.println("Lots of bullets...");
         }
         if(showMessage) {
             String message = "Press escape to exit...";
 
             g.setFont(new Font("moon", Font.BOLD, 24));
+
             float h, s, b;
-            h = 336f / 360;
+            h = System.currentTimeMillis() % 10000;
+            h /= 10000;
             s = 87f / 100;
             b = 100f / 100;
             g.setColor(Color.getHSBColor(h, s, b));
@@ -174,7 +224,6 @@ public class Board extends JPanel implements Runnable {
         for(Entity brick : bricks) {
             ((Brick) brick).update(System.nanoTime());
         }
-
         turret.update();
 
         if(leftPressed && !rightPressed) {
@@ -182,8 +231,10 @@ public class Board extends JPanel implements Runnable {
         } else if(rightPressed && !leftPressed) {
             turret.rightRotate();
         }
-        if(firePressed)
+
+        if(firePressed) {
             fire();
+        }
 
         for(Entity bullet : bullets) {
             bricks.forEach((Entity brick) -> {
@@ -191,11 +242,14 @@ public class Board extends JPanel implements Runnable {
                     bullet.collided(brick);
             });
         }
-        if(brickCount == 0)
-            notifyWin();
 
-        for(Entity e : bullets)
+        if(brickCount == 0) {
+            notifyWin();
+        }
+
+        for(Entity e : bullets) {
             e.move(DELAY);
+        }
     }
 
     @Override

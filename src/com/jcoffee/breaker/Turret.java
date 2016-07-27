@@ -54,9 +54,9 @@ public class Turret extends Entity {
 
     public void draw(Graphics g) {
         ((Graphics2D) g).setRenderingHints(rh);
-        ((Graphics2D) g).rotate(Math.toRadians(angle + 90), x + 50 - 13, y + 80);
+        ((Graphics2D) g).rotate(Math.toRadians(angle + 90), x + 39, y + 95);
         g.drawImage(sprite.getImage(), (int) x, (int) y, null);
-        ((Graphics2D) g).rotate(-Math.toRadians(angle + 90), x + 50 - 13, y + 80);
+        ((Graphics2D) g).rotate(-Math.toRadians(angle + 90), x + 39, y + 95);
     }
 
     @Override

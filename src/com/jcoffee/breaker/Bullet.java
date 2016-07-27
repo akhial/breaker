@@ -38,7 +38,6 @@ public class Bullet extends Entity {
     @Override
     public void collided(Entity other) {
         board.removeBullet(this);
-        board.removeBrick(other);
-        board.notifyBrick();
+        board.checkBricks((Brick) other, ((Brick) other).getColor());
     }
 }

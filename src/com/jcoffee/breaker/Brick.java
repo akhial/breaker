@@ -1,5 +1,8 @@
 package com.jcoffee.breaker;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
+
 /**
  * The class <code>Brick</code> represents all breakable game objects.
  *
@@ -11,8 +14,10 @@ public class Brick extends Entity {
     private Sprite[] frames = new Sprite[5];
     private int frameCount = 0;
     private long lastFrame;
+    private String color;
+    private boolean visited;
 
-    public Brick(String ref, double x, double y) {
+    public Brick(String ref, double x, double y, String color) {
 
         super(ref, x, y);
 
@@ -27,16 +32,35 @@ public class Brick extends Entity {
         frames[3] = SpriteStore.getInstance().getSprite(spriteRef + "_4.png");
         frames[4] = SpriteStore.getInstance().getSprite(spriteRef + "_5.png");
 
+        this.color = color;
+        visited = false;
+
     }
 
     public void update(long time) {
-        int frameLength = 100000000;
+        int frameLength = 80000000;
         if(time - lastFrame > frameLength) {
             sprite = frames[frameCount];
             frameCount++;
             frameCount %= 5;
             lastFrame = time;
         }
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setVisited() {
+        visited = true;
+    }
+
+    public void clearVisited() {
+        visited = false;
+    }
+
+    public boolean isVisited() {
+        return visited;
     }
 
     @Override

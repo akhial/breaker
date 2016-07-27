@@ -15,7 +15,6 @@ public abstract class Entity {
 
     private static final int SEC = 1000000000;
 
-
     protected double x;
     protected double y;
     protected double dx;
