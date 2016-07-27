@@ -1,8 +1,5 @@
 package com.jcoffee.breaker;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
-
 /**
  * The class <code>Brick</code> represents all breakable game objects.
  *
