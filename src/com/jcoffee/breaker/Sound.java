@@ -48,7 +48,7 @@ public class Sound {
                 }
             };
             Timer timer = new Timer();
-            timer.schedule(task, 100); // shot sound length is 100 milliseconds to avoid clipping
+            timer.schedule(task, 300); // shot sound length is 300 milliseconds to avoid clipping
         }
         clip.setFramePosition(0);
         clip.start();

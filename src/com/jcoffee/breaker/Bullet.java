@@ -11,7 +11,7 @@ import java.awt.*;
 public class Bullet extends Entity {
 
     private Board board;
-    private int angle;
+    private float angle;
 
     public Bullet(String ref, double x, double y, Board board) {
         super(ref, x, y);

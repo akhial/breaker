@@ -18,8 +18,11 @@ public class Board extends JPanel implements Runnable {
 
     private static final int DELAY = 10000000;
     private long lastFireTime = 0;
-    private int brickCount = 80;
+    private int score = 0;
+    private int bricksDestroyed = 0;
+    private int frames = 0;
     private boolean showMessage = false;
+    private boolean once = true;
     private boolean gameRunning = true;
     private boolean rightPressed = false;
     private boolean leftPressed = false;
@@ -39,7 +42,7 @@ public class Board extends JPanel implements Runnable {
         float h, s, b;
         h = 180f / 360;
         s = 0.6f;
-        b = 0.4f;
+        b = 0.3f;
         setBackground(Color.getHSBColor(h, s, b));
         setDoubleBuffered(true);
 
@@ -75,14 +78,13 @@ public class Board extends JPanel implements Runnable {
 
     public void removeBrick(Entity e) {
         removeBricks.add(e);
-        --brickCount;
     }
 
     public void removeBullet(Entity e) {
         removeBullets.add(e);
     }
 
-    public int getAngle() {
+    public float getAngle() {
         return turret.getAngle();
     }
 
@@ -90,16 +92,13 @@ public class Board extends JPanel implements Runnable {
         turret = new Turret("resources/sprites/turret/turret_0.png", 487 / 2 - 34, 640 - 140);
         for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 10; j++) {
-                int color = random.nextInt(colors.length);
-                String colorName = colors[color];
-                Brick brick = new Brick("resources/sprites/" + colorName + "/" + colorName + "_1.png", j * 50, i * 50, colorName);
-                bricks.add(brick);
+                generate(j, i);
             }
         }
     }
 
     private void fire() {
-        int fireSpeed = 100000000;
+        int fireSpeed = 300000000;
         long curTime = System.nanoTime();
         if(curTime - lastFireTime > fireSpeed) {
             lastFireTime = curTime;
@@ -113,77 +112,6 @@ public class Board extends JPanel implements Runnable {
         }
     }
 
-    private void notifyWin() {
-        Thread messageThread = new Thread(() ->
-                JOptionPane.showMessageDialog(this, "Congratulations! You win!", "You win!", JOptionPane.INFORMATION_MESSAGE));
-        messageThread.start();
-        brickCount = -1;
-        firePressed = false;
-        showMessage = true;
-        // music.stop();
-        music.setVolume(-22.0f);
-        Sound end = new Sound("resources/sounds/end_game.wav");
-        end.setVolume(6.0f);
-        end.play();
-
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                music.setVolume(0.0f);
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(task, 8000);
-    }
-
-    private Brick getBrick(int x, int y) {
-        if(x < 0 || x > 10) {
-            return null;
-        }
-        if(y < 0 || y > 8) {
-            return null;
-        }
-        for(Entity b : bricks) {
-            if(b.getX() == x * 50 && b.getY() == y * 50) {
-                return (Brick) b;
-            }
-        }
-        return null;
-    }
-
-    public boolean checkBricks(Brick brick, String color) {
-        int x, y;
-        if(brick == null) {
-            return false;
-        }
-        if(brick.isVisited() || !brick.getColor().equals(color)) {
-            return false;
-        }
-        brick.setVisited();
-        Brick b;
-
-        x = brick.getX() / 50 + 1;
-        y = brick.getY() / 50;
-        b = getBrick(x, y);
-        if(checkBricks(b, color)) return true;
-        x = brick.getX() / 50 - 1;
-        y = brick.getY() / 50;
-        b = getBrick(x, y);
-        if(checkBricks(b, color)) return true;
-        x = brick.getX() / 50;
-        y = brick.getY() / 50 + 1;
-        b = getBrick(x, y);
-        if(checkBricks(b, color)) return true;
-        x = brick.getX() / 50;
-        y = brick.getY() / 50 - 1;
-        b = getBrick(x, y);
-        if(checkBricks(b, color)) return true;
-
-        removeBrick(brick);
-
-        return false;
-    }
-
     private void drawEntities(Graphics g) {
 
         try {
@@ -192,6 +120,21 @@ public class Board extends JPanel implements Runnable {
                 e.draw(g);
             for(Entity e : bricks)
                 e.draw(g);
+
+            float h, s, b;
+            h = System.currentTimeMillis() % 10000;
+            h /= 10000;
+            s = 100f / 100;
+            b = 100f / 100;
+
+            g.setColor(Color.getHSBColor(h, s, b));
+            RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            ((Graphics2D) g).setRenderingHints(rh);
+
+            g.setFont(new Font("Kayak Sans", Font.BOLD, 40));
+            String message = Integer.toString(score);
+            g.drawString(message, 460 - getFontMetrics(getFont()).stringWidth(message) * 2, 640);
+
         } catch(ConcurrentModificationException cme) {
             System.out.println("Lots of bullets...");
         }
@@ -210,7 +153,7 @@ public class Board extends JPanel implements Runnable {
             RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             ((Graphics2D) g).setRenderingHints(rh);
 
-            g.drawString(message, (getWidth() - getFontMetrics(g.getFont()).stringWidth(message)) / 2, getHeight() / 2);
+            g.drawString(message, (getWidth() - getFontMetrics(g.getFont()).stringWidth(message)) / 2, getHeight() - 200);
         }
         Toolkit.getDefaultToolkit().sync();
     }
@@ -243,13 +186,125 @@ public class Board extends JPanel implements Runnable {
             });
         }
 
-        if(brickCount == 0) {
-            notifyWin();
+        if(bricksDestroyed == 1) {
+            score += bricksDestroyed;
+        } else {
+            score += bricksDestroyed * bricksDestroyed * 3;
         }
+        bricksDestroyed = 0;
 
         for(Entity e : bullets) {
             e.move(DELAY);
         }
+
+        if(score > 1000 && once) {
+            notifyWin();
+        }
+
+        if(frames % 20 == 0) {
+            generateBricks();
+        }
+        updateFalling();
+
+        ++frames;
+    }
+
+    private void notifyWin() {
+        Thread messageThread = new Thread(() ->
+                JOptionPane.showMessageDialog(this, "Congratulations! You win!", "You win!", JOptionPane.INFORMATION_MESSAGE));
+        messageThread.start();
+        once = false;
+        firePressed = false;
+        showMessage = true;
+        // music.stop();
+        music.setVolume(-22.0f);
+        Sound end = new Sound("resources/sounds/end_game.wav");
+        end.setVolume(6.0f);
+        end.play();
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                music.setVolume(0.0f);
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(task, 8000);
+    }
+
+    private Brick getBrick(int x, int y) {
+        if(x < 0 || x > 9) {
+            return null;
+        }
+        if(y < 0 || y > 7) {
+            return null;
+        }
+        for(Entity b : bricks) {
+            if(b.getX() == x * 50 && b.getY() == y * 50) {
+                return (Brick) b;
+            }
+        }
+        return null;
+    }
+
+    private void generate(int x, int y) {
+        int color = random.nextInt(5);
+        String colorName = colors[color];
+        Brick brick = new Brick("resources/sprites/" + colorName + "/" + colorName + "_1.png", x * 50, y * 50, colorName);
+        bricks.add(brick);
+    }
+
+    private void generateBricks() {
+        for(int i = 0; i < 10; i++) {
+            if(getBrick(i, 0) == null) {
+                generate(i, -1);
+            }
+        }
+    }
+
+    private void updateFalling() {
+        for(Entity brick : bricks) {
+            int x = brick.getX() / 50;
+            int y = brick.getY() / 50;
+
+            if((getBrick(x, y + 1) == null && y != 7) || brick.getY() % 50 != 0) {
+                ((Brick) brick).fall();
+            }
+        }
+    }
+
+    public boolean checkBricks(Brick brick, String color) {
+        int x, y;
+        if(brick == null) {
+            return false;
+        }
+        if(brick.isVisited() || !brick.getColor().equals(color)) {
+            return false;
+        }
+        brick.setVisited();
+        Brick b;
+
+        x = brick.getX() / 50 + 1;
+        y = brick.getY() / 50;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+        x = brick.getX() / 50 - 1;
+        y = brick.getY() / 50;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+        x = brick.getX() / 50;
+        y = brick.getY() / 50 + 1;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+        x = brick.getX() / 50;
+        y = brick.getY() / 50 - 1;
+        b = getBrick(x, y);
+        if(checkBricks(b, color)) return true;
+
+        ++bricksDestroyed;
+        removeBrick(brick);
+
+        return false;
     }
 
     @Override

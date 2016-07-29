@@ -10,7 +10,7 @@ import java.awt.*;
 
 public class Turret extends Entity {
 
-    private int angle = 270;
+    private float angle = 270;
     private RenderingHints rh;
     private Sprite[] frames = new Sprite[180];
     private int frameCount = 0;
@@ -34,12 +34,12 @@ public class Turret extends Entity {
 
     public void leftRotate() {
         if(angle > 205)
-            angle -= 1;
+            angle -= 1f;
     }
 
     public void rightRotate() {
         if(angle < 335)
-            angle += 1;
+            angle += 1f;
     }
 
     public void update() {
@@ -48,7 +48,7 @@ public class Turret extends Entity {
         frameCount %= 179;
     }
 
-    public int getAngle() {
+    public float getAngle() {
         return angle;
     }
 

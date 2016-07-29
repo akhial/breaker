@@ -34,6 +34,10 @@ public class Brick extends Entity {
 
     }
 
+    public void fall() {
+        y += 5;
+    }
+
     public void update(long time) {
         int frameLength = 80000000;
         if(time - lastFrame > frameLength) {
@@ -50,10 +54,6 @@ public class Brick extends Entity {
 
     public void setVisited() {
         visited = true;
-    }
-
-    public void clearVisited() {
-        visited = false;
     }
 
     public boolean isVisited() {
