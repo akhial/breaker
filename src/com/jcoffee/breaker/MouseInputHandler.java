@@ -1,0 +1,18 @@
+package com.jcoffee.breaker;
+
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+public class MouseInputHandler extends MouseAdapter {
+
+    private Board board;
+
+    public MouseInputHandler(Board board) {
+        this.board = board;
+    }
+
+    public void mouseClicked(MouseEvent e) {
+        board.checkBricks(e.getX(), e.getY() - 25); // the y-axis starts at 25
+    }
+
+}

@@ -5,7 +5,6 @@ import java.security.SecureRandom;
 import java.util.*;
 
 import javax.swing.*;
-import java.util.Timer;
 
 /**
  * The <code>Board</code> class is the container of the game,
@@ -17,25 +16,17 @@ import java.util.Timer;
 public class Board extends JPanel implements Runnable {
 
     private static final int DELAY = 10000000;
-    private long lastFireTime = 0;
+    public static final int MAX_COL = 8;
     private int score = 0;
     private int bricksDestroyed = 0;
     private int frames = 0;
     private boolean showMessage = false;
     private boolean once = true;
     private boolean gameRunning = true;
-    private boolean rightPressed = false;
-    private boolean leftPressed = false;
-    private boolean firePressed = false;
-    private Turret turret;
-    private Sound shotSound;
-    private Sound music;
     private String[] colors = {"blue", "purple", "yellow", "magenta", "green"};
     private SecureRandom random;
 
-    private ArrayList<Entity> bullets = new ArrayList<>();
     private ArrayList<Entity> bricks = new ArrayList<>();
-    private ArrayList<Entity> removeBullets = new ArrayList<>();
     private ArrayList<Entity> removeBricks = new ArrayList<>();
 
     public Board() {
@@ -46,17 +37,9 @@ public class Board extends JPanel implements Runnable {
         setBackground(Color.getHSBColor(h, s, b));
         setDoubleBuffered(true);
 
-        setPreferredSize(new Dimension(487, 640));
+        setPreferredSize(new Dimension(487, 600));
         random = new SecureRandom();
         initEntities();
-
-        shotSound = new Sound("resources/sounds/bullet_shot.wav");
-        shotSound.setShot(true);
-        shotSound.setVolume(-13.0f);
-
-        music = new Sound("resources/sounds/music.wav");
-        music.setLoop(true);
-        music.play();
 
     }
 
@@ -64,62 +47,24 @@ public class Board extends JPanel implements Runnable {
         this.gameRunning = gameRunning;
     }
 
-    public void setRightPressed(boolean rightPressed) {
-        this.rightPressed = rightPressed;
-    }
-
-    public void setLeftPressed(boolean leftPressed) {
-        this.leftPressed = leftPressed;
-    }
-
-    public void setFirePressed(boolean firePressed) {
-        this.firePressed = firePressed;
-    }
-
     public void removeBrick(Entity e) {
         removeBricks.add(e);
     }
 
-    public void removeBullet(Entity e) {
-        removeBullets.add(e);
-    }
-
-    public float getAngle() {
-        return turret.getAngle();
-    }
-
     private void initEntities() {
-        turret = new Turret("resources/sprites/turret/turret_0.png", 487 / 2 - 34, 640 - 140);
-        for(int i = 0; i < 8; i++) {
+        for(int i = 0; i < MAX_COL + 1; i++) {
             for(int j = 0; j < 10; j++) {
                 generate(j, i);
             }
         }
     }
 
-    private void fire() {
-        int fireSpeed = 300000000;
-        long curTime = System.nanoTime();
-        if(curTime - lastFireTime > fireSpeed) {
-            lastFireTime = curTime;
-            // 229, 430
-            shotSound.play();
-            Bullet bullet = new Bullet("resources/sprites/bullet.png",
-                    turret.getX() + 20 + 125 * Math.sin(Math.toRadians(-turret.getAngle() + 90)),
-                    turret.getY() + 75 + 125 * Math.cos(Math.toRadians(-turret.getAngle() + 90)), this);
-            bullets.add(bullet);
-
-        }
-    }
-
     private void drawEntities(Graphics g) {
 
         try {
-            turret.draw(g);
-            for(Entity e : bullets)
+            for(Entity e : bricks) {
                 e.draw(g);
-            for(Entity e : bricks)
-                e.draw(g);
+            }
 
             float h, s, b;
             h = System.currentTimeMillis() % 10000;
@@ -131,15 +76,15 @@ public class Board extends JPanel implements Runnable {
             RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             ((Graphics2D) g).setRenderingHints(rh);
 
-            g.setFont(new Font("Kayak Sans", Font.BOLD, 40));
+            g.setFont(new Font("moon", Font.BOLD, 50));
             String message = Integer.toString(score);
-            g.drawString(message, 460 - getFontMetrics(getFont()).stringWidth(message) * 2, 640);
+            g.drawString(message, 487 / 2 - getFontMetrics(getFont()).stringWidth(message) * 2, 580);
 
         } catch(ConcurrentModificationException cme) {
             System.out.println("Lots of bullets...");
         }
         if(showMessage) {
-            String message = "Press escape to exit...";
+            String message = "Press escape to exit";
 
             g.setFont(new Font("moon", Font.BOLD, 24));
 
@@ -153,7 +98,7 @@ public class Board extends JPanel implements Runnable {
             RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             ((Graphics2D) g).setRenderingHints(rh);
 
-            g.drawString(message, (getWidth() - getFontMetrics(g.getFont()).stringWidth(message)) / 2, getHeight() - 200);
+            g.drawString(message, (getWidth() - getFontMetrics(g.getFont()).stringWidth(message)) / 2, 510);
         }
         Toolkit.getDefaultToolkit().sync();
     }
@@ -161,41 +106,17 @@ public class Board extends JPanel implements Runnable {
     private void cycle() {
         bricks.removeAll(removeBricks);
         removeBricks.clear();
-        bullets.removeAll(removeBullets);
-        removeBullets.clear();
 
         for(Entity brick : bricks) {
             ((Brick) brick).update(System.nanoTime());
         }
-        turret.update();
 
-        if(leftPressed && !rightPressed) {
-            turret.leftRotate();
-        } else if(rightPressed && !leftPressed) {
-            turret.rightRotate();
-        }
-
-        if(firePressed) {
-            fire();
-        }
-
-        for(Entity bullet : bullets) {
-            bricks.forEach((Entity brick) -> {
-                if(bullet.isCollided(brick))
-                    bullet.collided(brick);
-            });
-        }
-
-        if(bricksDestroyed == 1) {
+        if(bricksDestroyed < 4) {
             score += bricksDestroyed;
         } else {
-            score += bricksDestroyed * bricksDestroyed * 3;
+            score += bricksDestroyed * bricksDestroyed;
         }
         bricksDestroyed = 0;
-
-        for(Entity e : bullets) {
-            e.move(DELAY);
-        }
 
         if(score > 1000 && once) {
             notifyWin();
@@ -214,29 +135,14 @@ public class Board extends JPanel implements Runnable {
                 JOptionPane.showMessageDialog(this, "Congratulations! You win!", "You win!", JOptionPane.INFORMATION_MESSAGE));
         messageThread.start();
         once = false;
-        firePressed = false;
         showMessage = true;
-        // music.stop();
-        music.setVolume(-22.0f);
-        Sound end = new Sound("resources/sounds/end_game.wav");
-        end.setVolume(6.0f);
-        end.play();
-
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                music.setVolume(0.0f);
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(task, 8000);
     }
 
     private Brick getBrick(int x, int y) {
         if(x < 0 || x > 9) {
             return null;
         }
-        if(y < 0 || y > 7) {
+        if(y < 0 || y > MAX_COL) {
             return null;
         }
         for(Entity b : bricks) {
@@ -267,9 +173,19 @@ public class Board extends JPanel implements Runnable {
             int x = brick.getX() / 50;
             int y = brick.getY() / 50;
 
-            if((getBrick(x, y + 1) == null && y != 7) || brick.getY() % 50 != 0) {
+            if((getBrick(x, y + 1) == null && y != MAX_COL) || brick.getY() % 50 != 0) {
                 ((Brick) brick).fall();
             }
+        }
+    }
+
+    public void checkBricks(int x, int y) {
+        x /= 50;
+        y /= 50;
+
+        Brick brick = getBrick(x, y);
+        if(brick != null) {
+            checkBricks(brick, brick.getColor());
         }
     }
 
@@ -326,7 +242,6 @@ public class Board extends JPanel implements Runnable {
         long before, diff, sleep;
 
         before = System.nanoTime();
-        lastFireTime = before;
 
         while(gameRunning) {
             cycle();

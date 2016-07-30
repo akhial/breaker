@@ -15,8 +15,11 @@ public class Application extends JFrame {
     private Application() {
         Board b = new Board();
         add(b);
-        KeyInputHandler handler = new KeyInputHandler(b);
-        addKeyListener(handler);
+        KeyInputHandler kHandler = new KeyInputHandler(b);
+        addKeyListener(kHandler);
+
+        MouseInputHandler mHandler = new MouseInputHandler(b);
+        addMouseListener(mHandler);
 
         pack();
         setResizable(false);
