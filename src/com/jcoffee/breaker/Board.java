@@ -1,9 +1,12 @@
 package com.jcoffee.breaker;
 
 import java.awt.*;
+import java.io.IOException;
+import java.net.URL;
 import java.security.SecureRandom;
 import java.util.*;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
@@ -23,19 +26,36 @@ public class Board extends JPanel implements Runnable {
     private boolean showMessage = false;
     private boolean once = true;
     private boolean gameRunning = true;
-    private String[] colors = {"blue", "purple", "yellow", "magenta", "green"};
+    private String[] colors = {"diamond", "jade", "pink", "purple", "turquoise", "ruby"};
+    private Sound one, two, three, four;
     private SecureRandom random;
+    private Image image;
 
     private ArrayList<Entity> bricks = new ArrayList<>();
     private ArrayList<Entity> removeBricks = new ArrayList<>();
 
     public Board() {
-        float h, s, b;
-        h = 180f / 360;
-        s = 0.6f;
-        b = 0.3f;
-        setBackground(Color.getHSBColor(h, s, b));
         setDoubleBuffered(true);
+        float h, s, b;
+        h = 277.14f / 360;
+        s = 16.47f / 100;
+        b = 1;
+
+        setBackground(Color.getHSBColor(h, s, b));
+
+        URL url = getClass().getClassLoader().getResource("resources/backdrop.png");
+        try {
+            if(url != null) {
+                image = ImageIO.read(url);
+            }
+        } catch(IOException e) {
+            System.err.println("Unable to load backdrop");
+        }
+
+        one = new Sound("resources/sounds/one.wav");
+        two = new Sound("resources/sounds/two.wav");
+        three = new Sound("resources/sounds/three.wav");
+        four = new Sound("resources/sounds/four.wav");
 
         setPreferredSize(new Dimension(487, 600));
         random = new SecureRandom();
@@ -52,8 +72,8 @@ public class Board extends JPanel implements Runnable {
     }
 
     private void initEntities() {
-        for(int i = 0; i < MAX_COL + 1; i++) {
-            for(int j = 0; j < 10; j++) {
+        for(int i = 1; i < MAX_COL + 1; i++) {
+            for(int j = 1; j < 9; j++) {
                 generate(j, i);
             }
         }
@@ -67,16 +87,15 @@ public class Board extends JPanel implements Runnable {
             }
 
             float h, s, b;
-            h = System.currentTimeMillis() % 10000;
-            h /= 10000;
+            h = 200f / 360;
             s = 100f / 100;
-            b = 100f / 100;
+            b = 50f / 100;
 
             g.setColor(Color.getHSBColor(h, s, b));
             RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             ((Graphics2D) g).setRenderingHints(rh);
 
-            g.setFont(new Font("moon", Font.BOLD, 50));
+            g.setFont(new Font("Yanone Kaffeesatz", Font.BOLD, 50));
             String message = Integer.toString(score);
             g.drawString(message, 487 / 2 - getFontMetrics(getFont()).stringWidth(message) * 2, 580);
 
@@ -89,16 +108,15 @@ public class Board extends JPanel implements Runnable {
             g.setFont(new Font("moon", Font.BOLD, 24));
 
             float h, s, b;
-            h = System.currentTimeMillis() % 10000;
-            h /= 10000;
-            s = 87f / 100;
-            b = 100f / 100;
+            h = 200f / 360;
+            s = 100f / 100;
+            b = 50f / 100;
             g.setColor(Color.getHSBColor(h, s, b));
 
             RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             ((Graphics2D) g).setRenderingHints(rh);
 
-            g.drawString(message, (getWidth() - getFontMetrics(g.getFont()).stringWidth(message)) / 2, 510);
+            g.drawString(message, (getWidth() - getFontMetrics(g.getFont()).stringWidth(message)) / 2, 530);
         }
         Toolkit.getDefaultToolkit().sync();
     }
@@ -110,12 +128,27 @@ public class Board extends JPanel implements Runnable {
         for(Entity brick : bricks) {
             ((Brick) brick).update(System.nanoTime());
         }
-
-        if(bricksDestroyed < 4) {
-            score += bricksDestroyed;
-        } else {
-            score += bricksDestroyed * bricksDestroyed;
+        if(bricksDestroyed != 0) {
+            if(bricksDestroyed < 4) {
+                score += bricksDestroyed;
+            } else {
+                score += bricksDestroyed * bricksDestroyed;
+            }
+            if(bricksDestroyed < 4) {
+                one.stop();
+                one.play();
+            } else if(bricksDestroyed < 5) {
+                two.stop();
+                two.play();
+            } else if(bricksDestroyed < 7) {
+                three.stop();
+                three.play();
+            } else {
+                four.stop();
+                four.play();
+            }
         }
+
         bricksDestroyed = 0;
 
         if(score > 1000 && once) {
@@ -139,10 +172,10 @@ public class Board extends JPanel implements Runnable {
     }
 
     private Brick getBrick(int x, int y) {
-        if(x < 0 || x > 9) {
+        if(x < 1 || x > 8) {
             return null;
         }
-        if(y < 0 || y > MAX_COL) {
+        if(y < 1 || y > MAX_COL) {
             return null;
         }
         for(Entity b : bricks) {
@@ -156,13 +189,13 @@ public class Board extends JPanel implements Runnable {
     private void generate(int x, int y) {
         int color = random.nextInt(5);
         String colorName = colors[color];
-        Brick brick = new Brick("resources/sprites/" + colorName + "/" + colorName + "_1.png", x * 50, y * 50, colorName);
+        Brick brick = new Brick("resources/sprites/" + colorName + ".png", x * 50, y * 50, colorName);
         bricks.add(brick);
     }
 
     private void generateBricks() {
-        for(int i = 0; i < 10; i++) {
-            if(getBrick(i, 0) == null) {
+        for(int i = 1; i < 9; i++) {
+            if(getBrick(i, 1) == null) {
                 generate(i, -1);
             }
         }
@@ -234,6 +267,7 @@ public class Board extends JPanel implements Runnable {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        g.drawImage(image, 5, 0, null);
         drawEntities(g);
     }
 

@@ -8,7 +8,7 @@ package com.jcoffee.breaker;
 
 public class Brick extends Entity {
 
-    private Sprite[] frames = new Sprite[5];
+    private Sprite[] frames = new Sprite[1];
     private int frameCount = 0;
     private long lastFrame;
     private String color;
@@ -18,16 +18,7 @@ public class Brick extends Entity {
 
         super(ref, x, y);
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(ref);
-        builder.delete(builder.length() - 6, builder.length());
-        String spriteRef = builder.toString();
-
         frames[0] = sprite;
-        frames[1] = SpriteStore.getInstance().getSprite(spriteRef + "_2.png");
-        frames[2] = SpriteStore.getInstance().getSprite(spriteRef + "_3.png");
-        frames[3] = SpriteStore.getInstance().getSprite(spriteRef + "_4.png");
-        frames[4] = SpriteStore.getInstance().getSprite(spriteRef + "_5.png");
 
         this.color = color;
         visited = false;
@@ -43,7 +34,7 @@ public class Brick extends Entity {
         if(time - lastFrame > frameLength) {
             sprite = frames[frameCount];
             frameCount++;
-            frameCount %= 5;
+            frameCount %= frames.length;
             lastFrame = time;
         }
     }

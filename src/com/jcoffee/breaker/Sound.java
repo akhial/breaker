@@ -37,6 +37,7 @@ public class Sound {
     }
 
     public void play() {
+        clip.setFramePosition(0);
         if(loop) {
             clip.loop(Clip.LOOP_CONTINUOUSLY);
 
@@ -50,7 +51,6 @@ public class Sound {
             Timer timer = new Timer();
             timer.schedule(task, 300);
         }
-        clip.setFramePosition(0);
         clip.start();
     }
 
