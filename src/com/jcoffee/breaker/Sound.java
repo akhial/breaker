@@ -7,7 +7,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * The class <code>Sound</code> represents a playable sound file
+ * The class <code>Sound</code> represents a playable sound file.
  *
  * @author Adel Khial
  */
@@ -15,8 +15,6 @@ import java.util.TimerTask;
 public class Sound {
 
     private Clip clip;
-    private boolean loop = false;
-    private boolean shot = false;
 
     public Sound(String ref) {
         URL url = this.getClass().getClassLoader().getResource(ref);
@@ -38,37 +36,7 @@ public class Sound {
 
     public void play() {
         clip.setFramePosition(0);
-        if(loop) {
-            clip.loop(Clip.LOOP_CONTINUOUSLY);
-
-        } else if(shot) {
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    clip.stop();
-                }
-            };
-            Timer timer = new Timer();
-            timer.schedule(task, 300);
-        }
         clip.start();
-    }
-
-    public void stop() {
-        clip.stop();
-    }
-
-    public void setVolume(float gain) {
-        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        gainControl.setValue(gain);
-    }
-
-    public void setLoop(boolean loop) {
-        this.loop = loop;
-    }
-
-    public void setShot(boolean shot) {
-        this.shot = shot;
     }
 
     private void err(String message) {

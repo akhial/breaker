@@ -6,9 +6,9 @@ package com.jcoffee.breaker;
  * @author Adel Khial
  */
 
-public class Brick extends Entity {
+public class Brick extends Entity implements Animatable {
 
-    private Sprite[] frames = new Sprite[1];
+    private Sprite[] frames;
     private int frameCount = 0;
     private long lastFrame;
     private String color;
@@ -18,25 +18,12 @@ public class Brick extends Entity {
 
         super(ref, x, y);
 
+        frames = new Sprite[1];
         frames[0] = sprite;
 
         this.color = color;
         visited = false;
 
-    }
-
-    public void fall() {
-        y += 5;
-    }
-
-    public void update(long time) {
-        int frameLength = 80000000;
-        if(time - lastFrame > frameLength) {
-            sprite = frames[frameCount];
-            frameCount++;
-            frameCount %= frames.length;
-            lastFrame = time;
-        }
     }
 
     public String getColor() {
@@ -51,7 +38,18 @@ public class Brick extends Entity {
         return visited;
     }
 
+    public void fall() {
+        y += 5;
+    }
+
     @Override
-    public void collided(Entity other) {
-    } // collision handled elsewhere
+    public void update(long time) {
+        int frameLength = 80000000;
+        if(time - lastFrame > frameLength) {
+            sprite = frames[frameCount];
+            frameCount++;
+            frameCount %= frames.length;
+            lastFrame = time;
+        }
+    }
 }

@@ -15,6 +15,7 @@ public class Application extends JFrame {
     private Application() {
         Board b = new Board();
         add(b);
+
         KeyInputHandler kHandler = new KeyInputHandler(b);
         addKeyListener(kHandler);
 
@@ -23,7 +24,6 @@ public class Application extends JFrame {
 
         pack();
         setResizable(false);
-
         setTitle("Breaker");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

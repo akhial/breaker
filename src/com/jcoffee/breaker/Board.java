@@ -18,30 +18,59 @@ import javax.swing.*;
 
 public class Board extends JPanel implements Runnable {
 
-    private static final int DELAY = 10000000;
+    public static final int DELAY = 10000000;
     public static final int MAX_COL = 8;
-    private int score = 0;
+    private boolean gameRunning = true;
     private int bricksDestroyed = 0;
     private int frames = 0;
-    private boolean showMessage = false;
-    private boolean once = true;
-    private boolean gameRunning = true;
-    private String[] colors = {"diamond", "jade", "pink", "purple", "turquoise", "ruby"};
-    private Sound one, two, three, four;
-    private SecureRandom random;
+    private int lastScore;
+    private int score = 0;
     private Image image;
+    private SecureRandom random;
+    private Sound one, two, three, four;
+    private String[] colors = {"diamond", "jade", "pink", "purple", "turquoise", "ruby"};
 
     private ArrayList<Entity> bricks = new ArrayList<>();
+    private ArrayList<Entity> bursts = new ArrayList<>();
     private ArrayList<Entity> removeBricks = new ArrayList<>();
+    private ArrayList<Entity> removeBursts = new ArrayList<>();
 
     public Board() {
         setDoubleBuffered(true);
+
         float h, s, b;
         h = 277.14f / 360;
         s = 16.47f / 100;
         b = 1;
-
         setBackground(Color.getHSBColor(h, s, b));
+        setPreferredSize(new Dimension(488, 600));
+
+        initSounds();
+        initEntities();
+
+    }
+
+    private void initSounds() {
+        one = new Sound("resources/sounds/one.wav");
+        two = new Sound("resources/sounds/two.wav");
+        three = new Sound("resources/sounds/three.wav");
+        four = new Sound("resources/sounds/four.wav");
+    }
+
+    private void initEntities() {
+        for(int i = 0; i < 7; i++) {
+            // this is to cache "burst" sprites in the instantiation stage
+            Burst burst = new Burst("resources/bursts/" + (i + 1) + "/0.png", 0, 0, this);
+            burst.getX(); // to avoid unused variable warning
+        }
+
+        random = new SecureRandom();
+
+        for(int i = 1; i < MAX_COL + 1; i++) {
+            for(int j = 1; j < 9; j++) {
+                generate(j, i);
+            }
+        }
 
         URL url = getClass().getClassLoader().getResource("resources/backdrop.png");
         try {
@@ -51,16 +80,6 @@ public class Board extends JPanel implements Runnable {
         } catch(IOException e) {
             System.err.println("Unable to load backdrop");
         }
-
-        one = new Sound("resources/sounds/one.wav");
-        two = new Sound("resources/sounds/two.wav");
-        three = new Sound("resources/sounds/three.wav");
-        four = new Sound("resources/sounds/four.wav");
-
-        setPreferredSize(new Dimension(487, 600));
-        random = new SecureRandom();
-        initEntities();
-
     }
 
     public void setGameRunning(boolean gameRunning) {
@@ -68,15 +87,40 @@ public class Board extends JPanel implements Runnable {
     }
 
     public void removeBrick(Entity e) {
+        int num = random.nextInt(7);
+
+        Burst burst = new Burst("resources/bursts/" + (num + 1) + "/0.png", e.getX() - 6, e.getY() - 6, this);
+        bursts.add(burst);
         removeBricks.add(e);
     }
 
-    private void initEntities() {
-        for(int i = 1; i < MAX_COL + 1; i++) {
-            for(int j = 1; j < 9; j++) {
-                generate(j, i);
-            }
-        }
+    public void removeBurst(Entity e) {
+        removeBursts.add(e);
+    }
+
+    private void drawScore(Graphics g) {
+        float h, s, b;
+
+        RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        ((Graphics2D) g).setRenderingHints(rh);
+        g.setFont(new Font("Yanone Kaffeesatz", Font.BOLD, 72));
+        String message = Integer.toString(score);
+
+        h = 200f / 360;
+        s = 100f / 100;
+        b = 75f / 100;
+        g.setColor(Color.getHSBColor(h, s, b));
+        g.drawString(message, 480 / 2 - getFontMetrics(getFont()).stringWidth(message) * 2 + 2, 580 + 2);
+
+        h = 200f / 360;
+        s = 100f / 100;
+        b = 100f / 100;
+        g.setColor(Color.getHSBColor(h, s, b));
+        g.drawString(message, 480 / 2 - getFontMetrics(getFont()).stringWidth(message) * 2, 580);
+
+        message = "+" + lastScore;
+        g.setFont(new Font("Yanone Kaffeesatz", Font.BOLD, 48));
+        g.drawString(message, 380, 580);
     }
 
     private void drawEntities(Graphics g) {
@@ -85,38 +129,13 @@ public class Board extends JPanel implements Runnable {
             for(Entity e : bricks) {
                 e.draw(g);
             }
-
-            float h, s, b;
-            h = 200f / 360;
-            s = 100f / 100;
-            b = 50f / 100;
-
-            g.setColor(Color.getHSBColor(h, s, b));
-            RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            ((Graphics2D) g).setRenderingHints(rh);
-
-            g.setFont(new Font("Yanone Kaffeesatz", Font.BOLD, 50));
-            String message = Integer.toString(score);
-            g.drawString(message, 487 / 2 - getFontMetrics(getFont()).stringWidth(message) * 2, 580);
+            for(Entity e : bursts) {
+                e.draw(g);
+            }
+            drawScore(g);
 
         } catch(ConcurrentModificationException cme) {
             System.out.println("Lots of bullets...");
-        }
-        if(showMessage) {
-            String message = "Press escape to exit";
-
-            g.setFont(new Font("moon", Font.BOLD, 24));
-
-            float h, s, b;
-            h = 200f / 360;
-            s = 100f / 100;
-            b = 50f / 100;
-            g.setColor(Color.getHSBColor(h, s, b));
-
-            RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            ((Graphics2D) g).setRenderingHints(rh);
-
-            g.drawString(message, (getWidth() - getFontMetrics(g.getFont()).stringWidth(message)) / 2, 530);
         }
         Toolkit.getDefaultToolkit().sync();
     }
@@ -124,51 +143,41 @@ public class Board extends JPanel implements Runnable {
     private void cycle() {
         bricks.removeAll(removeBricks);
         removeBricks.clear();
+        bursts.removeAll(removeBursts);
+        removeBursts.clear();
 
         for(Entity brick : bricks) {
-            ((Brick) brick).update(System.nanoTime());
+            ((Animatable) brick).update(System.nanoTime());
+        }
+        for(Entity burst : bursts) {
+            ((Animatable) burst).update(System.nanoTime());
         }
         if(bricksDestroyed != 0) {
             if(bricksDestroyed < 4) {
-                score += bricksDestroyed;
+                lastScore = bricksDestroyed;
+                score += lastScore;
             } else {
-                score += bricksDestroyed * bricksDestroyed;
+                lastScore = bricksDestroyed * bricksDestroyed;
+                score += lastScore;
             }
             if(bricksDestroyed < 4) {
-                one.stop();
                 one.play();
-            } else if(bricksDestroyed < 5) {
-                two.stop();
+            } else if(bricksDestroyed < 6) {
                 two.play();
-            } else if(bricksDestroyed < 7) {
-                three.stop();
+            } else if(bricksDestroyed < 9) {
                 three.play();
             } else {
-                four.stop();
                 four.play();
             }
         }
-
         bricksDestroyed = 0;
 
-        if(score > 1000 && once) {
-            notifyWin();
-        }
-
         if(frames % 20 == 0) {
-            generateBricks();
+            generateTopBricks();
         }
         updateFalling();
 
         ++frames;
-    }
-
-    private void notifyWin() {
-        Thread messageThread = new Thread(() ->
-                JOptionPane.showMessageDialog(this, "Congratulations! You win!", "You win!", JOptionPane.INFORMATION_MESSAGE));
-        messageThread.start();
-        once = false;
-        showMessage = true;
     }
 
     private Brick getBrick(int x, int y) {
@@ -193,7 +202,7 @@ public class Board extends JPanel implements Runnable {
         bricks.add(brick);
     }
 
-    private void generateBricks() {
+    private void generateTopBricks() {
         for(int i = 1; i < 9; i++) {
             if(getBrick(i, 1) == null) {
                 generate(i, -1);
@@ -267,7 +276,7 @@ public class Board extends JPanel implements Runnable {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(image, 5, 0, null);
+        g.drawImage(image, 6, 0, null); // to correctly center image
         drawEntities(g);
     }
 
