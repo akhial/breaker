@@ -1,2 +1,2 @@
 # Breaker
-A simple brick-breaker, bubble-breaker mash-up written using Java.
+A simple brick-breaker, bubble-breaker mash-up written in Java.
