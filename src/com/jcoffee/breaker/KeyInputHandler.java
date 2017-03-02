@@ -19,6 +19,6 @@ public class KeyInputHandler extends KeyAdapter {
 
     public void keyReleased(KeyEvent e) {
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
-            board.setGameRunning(false);
+            board.stopGame();
     }
 }

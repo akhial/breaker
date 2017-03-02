@@ -82,8 +82,8 @@ public class Board extends JPanel implements Runnable {
         }
     }
 
-    public void setGameRunning(boolean gameRunning) {
-        this.gameRunning = gameRunning;
+    public void stopGame() {
+        gameRunning = false;
     }
 
     public void removeBrick(Entity e) {
@@ -247,14 +247,12 @@ public class Board extends JPanel implements Runnable {
         b = getBrick(x, y);
         if(checkBricks(b, color)) return true;
         x = brick.getX() / 50 - 1;
-        y = brick.getY() / 50;
         b = getBrick(x, y);
         if(checkBricks(b, color)) return true;
         x = brick.getX() / 50;
         y = brick.getY() / 50 + 1;
         b = getBrick(x, y);
         if(checkBricks(b, color)) return true;
-        x = brick.getX() / 50;
         y = brick.getY() / 50 - 1;
         b = getBrick(x, y);
         if(checkBricks(b, color)) return true;

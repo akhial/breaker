@@ -3,8 +3,6 @@ package com.jcoffee.breaker;
 import javax.sound.sampled.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * The class <code>Sound</code> represents a playable sound file.

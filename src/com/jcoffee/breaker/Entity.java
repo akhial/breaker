@@ -1,7 +1,6 @@
 package com.jcoffee.breaker;
 
 import java.awt.Graphics;
-import java.awt.Rectangle;
 
 /**
  * The abstract class <code>Entity</code> represents a single drawable

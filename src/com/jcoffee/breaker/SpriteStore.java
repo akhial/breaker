@@ -22,6 +22,8 @@ public class SpriteStore {
     private static SpriteStore instance = new SpriteStore();
     private HashMap<String, Sprite> sprites = new HashMap<>();
 
+    private SpriteStore() {} // override default constructor to prevent initialisation
+
     public static SpriteStore getInstance() {
         return instance;
     }
@@ -43,6 +45,7 @@ public class SpriteStore {
         }
 
         GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        assert source != null;
         Image image = gc.createCompatibleImage(source.getWidth(), source.getHeight(), Transparency.BITMASK);
 
         image.getGraphics().drawImage(source, 0, 0, null);
