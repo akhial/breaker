@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent;
 
 public class MouseInputHandler extends MouseAdapter {
 
-    private Board board;
+    private final Board board;
 
     public MouseInputHandler(Board board) {
         this.board = board;

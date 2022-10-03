@@ -28,12 +28,12 @@ public class Board extends JPanel implements Runnable {
     private Image image;
     private SecureRandom random;
     private Sound one, two, three, four;
-    private String[] colors = {"diamond", "jade", "pink", "purple", "turquoise", "ruby"};
+    private final String[] colors = {"diamond", "jade", "pink", "purple", "turquoise", "ruby"};
 
-    private ArrayList<Entity> bricks = new ArrayList<>();
-    private ArrayList<Entity> bursts = new ArrayList<>();
-    private ArrayList<Entity> removeBricks = new ArrayList<>();
-    private ArrayList<Entity> removeBursts = new ArrayList<>();
+    private final ArrayList<Entity> bricks = new ArrayList<>();
+    private final ArrayList<Entity> bursts = new ArrayList<>();
+    private final ArrayList<Entity> removeBricks = new ArrayList<>();
+    private final ArrayList<Entity> removeBursts = new ArrayList<>();
 
     public Board() {
         setDoubleBuffered(true);
@@ -51,16 +51,16 @@ public class Board extends JPanel implements Runnable {
     }
 
     private void initSounds() {
-        one = new Sound("resources/sounds/one.wav");
-        two = new Sound("resources/sounds/two.wav");
-        three = new Sound("resources/sounds/three.wav");
-        four = new Sound("resources/sounds/four.wav");
+        one = new Sound("sounds/one.wav");
+        two = new Sound("sounds/two.wav");
+        three = new Sound("sounds/three.wav");
+        four = new Sound("sounds/four.wav");
     }
 
     private void initEntities() {
         for(int i = 0; i < 7; i++) {
             // this is to cache "burst" sprites in the instantiation stage
-            Burst burst = new Burst("resources/bursts/" + (i + 1) + "/0.png", 0, 0, this);
+            Burst burst = new Burst("bursts/" + (i + 1) + "/0.png", 0, 0, this);
             burst.getX(); // to avoid unused variable warning
         }
 
@@ -72,7 +72,7 @@ public class Board extends JPanel implements Runnable {
             }
         }
 
-        URL url = getClass().getClassLoader().getResource("resources/backdrop.png");
+        URL url = getClass().getClassLoader().getResource("backdrop.png");
         try {
             if(url != null) {
                 image = ImageIO.read(url);
@@ -89,7 +89,7 @@ public class Board extends JPanel implements Runnable {
     public void removeBrick(Entity e) {
         int num = random.nextInt(7);
 
-        Burst burst = new Burst("resources/bursts/" + (num + 1) + "/0.png", e.getX() - 6, e.getY() - 6, this);
+        Burst burst = new Burst("bursts/" + (num + 1) + "/0.png", e.getX() - 6, e.getY() - 6, this);
         bursts.add(burst);
         removeBricks.add(e);
     }
@@ -112,8 +112,6 @@ public class Board extends JPanel implements Runnable {
         g.setColor(Color.getHSBColor(h, s, b));
         g.drawString(message, 480 / 2 - getFontMetrics(getFont()).stringWidth(message) * 2 + 2, 580 + 2);
 
-        h = 200f / 360;
-        s = 100f / 100;
         b = 100f / 100;
         g.setColor(Color.getHSBColor(h, s, b));
         g.drawString(message, 480 / 2 - getFontMetrics(getFont()).stringWidth(message) * 2, 580);
@@ -198,7 +196,7 @@ public class Board extends JPanel implements Runnable {
     private void generate(int x, int y) {
         int color = random.nextInt(5);
         String colorName = colors[color];
-        Brick brick = new Brick("resources/sprites/" + colorName + ".png", x * 50, y * 50, colorName);
+        Brick brick = new Brick("sprites/" + colorName + ".png", x * 50, y * 50, colorName);
         bricks.add(brick);
     }
 

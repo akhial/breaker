@@ -8,10 +8,10 @@ package com.jcoffee.breaker;
 
 public class Brick extends Entity implements Animatable {
 
-    private Sprite[] frames;
+    private final Sprite[] frames;
     private int frameCount = 0;
     private long lastFrame;
-    private String color;
+    private final String color;
     private boolean visited;
 
     public Brick(String ref, double x, double y, String color) {

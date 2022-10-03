@@ -11,7 +11,7 @@ import java.awt.event.KeyEvent;
 
 public class KeyInputHandler extends KeyAdapter {
 
-    private Board board;
+    private final Board board;
 
     public KeyInputHandler(Board board) {
         this.board = board;

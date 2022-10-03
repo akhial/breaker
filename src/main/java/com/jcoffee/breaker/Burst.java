@@ -9,10 +9,10 @@ package com.jcoffee.breaker;
 
 public class Burst extends Entity implements Animatable {
 
-    private Board board;
+    private final Board board;
     private int frameCount = 0;
     private long lastFrame;
-    private Sprite[] frames;
+    private final Sprite[] frames;
 
     public Burst(String ref, double x, double y, Board board) {
         super(ref, x, y);
@@ -25,8 +25,6 @@ public class Burst extends Entity implements Animatable {
         builder.append(ref);
         builder.delete(builder.length() - 5, builder.length());
         String spriteRef = builder.toString();
-
-        frames[0] = sprite;
 
         for(int i = 1; i < 82; i++) {
             frames[i] = SpriteStore.getInstance().getSprite(spriteRef + i + ".png");

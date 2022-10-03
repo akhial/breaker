@@ -19,8 +19,8 @@ import javax.imageio.ImageIO;
 
 public class SpriteStore {
 
-    private static SpriteStore instance = new SpriteStore();
-    private HashMap<String, Sprite> sprites = new HashMap<>();
+    private static final SpriteStore instance = new SpriteStore();
+    private final HashMap<String, Sprite> sprites = new HashMap<>();
 
     private SpriteStore() {} // override default constructor to prevent initialisation
 
