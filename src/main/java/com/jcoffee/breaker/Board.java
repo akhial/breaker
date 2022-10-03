@@ -27,7 +27,7 @@ public class Board extends JPanel implements Runnable {
     private int score = 0;
     private Image image;
     private SecureRandom random;
-    private Sound one, two, three, four;
+    private Sound beep;
     private final String[] colors = {"diamond", "jade", "pink", "purple", "turquoise", "ruby"};
 
     private final ArrayList<Entity> bricks = new ArrayList<>();
@@ -51,10 +51,7 @@ public class Board extends JPanel implements Runnable {
     }
 
     private void initSounds() {
-        one = new Sound("sounds/one.wav");
-        two = new Sound("sounds/two.wav");
-        three = new Sound("sounds/three.wav");
-        four = new Sound("sounds/four.wav");
+        beep = new Sound("sounds/beep.wav");
     }
 
     private void initEntities() {
@@ -153,20 +150,11 @@ public class Board extends JPanel implements Runnable {
         if(bricksDestroyed != 0) {
             if(bricksDestroyed < 4) {
                 lastScore = bricksDestroyed;
-                score += lastScore;
             } else {
                 lastScore = bricksDestroyed * bricksDestroyed;
-                score += lastScore;
             }
-            if(bricksDestroyed < 4) {
-                one.play();
-            } else if(bricksDestroyed < 6) {
-                two.play();
-            } else if(bricksDestroyed < 9) {
-                three.play();
-            } else {
-                four.play();
-            }
+            score += lastScore;
+            beep.play();
         }
         bricksDestroyed = 0;
 
